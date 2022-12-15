@@ -1,0 +1,58 @@
+<!doctype html>
+
+<h3>Task1:</h3>
+<div id="task1"></div>
+<h3>Task3:</h3>
+<div id="task3"></div>
+<h3>Task7:</h3>
+<div id="task7"></div>
+
+<script>
+    webSocket = new WebSocket("ws://localhost:8097/");
+
+    webSocket.onmessage = (event) => {
+        console.log(event.data)
+
+        let text;
+        const msg = JSON.parse(event.data);
+        const online = msg.online;
+        const count = msg.count;
+
+        if (online) {
+            text = "IU9 online"
+            if (count > 1) {
+                text = text + ", count:" + count
+            }
+        } else {
+            text = "IU9 gone"
+        }
+        console.log(text)
+
+        if (text.length) {
+            document.getElementById("task7").innerText = text
+        }
+    }
+</script>
+
+<script>
+    webSocket = new WebSocket("ws://localhost:8091/");
+
+    webSocket.onmessage = (event) => {
+        console.log(event.data)
+
+        let text;
+        const msg = JSON.parse(event.data);
+        const message = msg.message;
+
+        if (message === "") {
+            text = "norm"
+        } else {
+            text = message
+        }
+        console.log(text)
+
+        if (text.length) {
+            document.getElementById("task1").innerText = text
+        }
+    }
+</script>
