@@ -31,7 +31,7 @@ func main() {
 
 	server.GET("/", UsersOnlineHandler)
 
-	err := server.Run(":8097")
+	err := server.Run(":8098")
 	if err != nil {
 		log.Fatalln(err)
 	}

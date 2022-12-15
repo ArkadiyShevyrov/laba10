@@ -8,7 +8,7 @@
 <div id="task7"></div>
 
 <script>
-    webSocket = new WebSocket("ws://localhost:8097/");
+    webSocket = new WebSocket("ws://151.248.113.144:8098/");
 
     webSocket.onmessage = (event) => {
         console.log(event.data)
@@ -35,7 +35,7 @@
 </script>
 
 <script>
-    webSocket = new WebSocket("ws://localhost:8091/");
+    webSocket = new WebSocket("ws://151.248.113.144:8091/");
 
     webSocket.onmessage = (event) => {
         console.log(event.data)
@@ -54,5 +54,25 @@
         if (text.length) {
             document.getElementById("task1").innerText = text
         }
+    }
+</script>
+
+<script>
+    webSocket = new WebSocket("ws://151.248.113.144:8095/");
+
+    webSocket.onmessage = (event) => {
+        console.log(event.data)
+
+        const msg = JSON.parse(event.data);
+        const products = msg.products;
+
+        let div = document.createElement("div")
+        for (let i = 0; i < products.length; i++) {
+            div.prepend("\n")
+            div.prepend(products[i].title)
+            div.prepend((i+1) + ": ")
+        }
+        document.getElementById("task3").innerText = div.innerText
+
     }
 </script>

@@ -1,22 +1,33 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/websocket"
-	"golang.org/x/crypto/ssh"
 	"log"
 	"net/http"
-	"strings"
 )
 
-const ip = "151.248.113.144"
-const port = "443"
-const login = "iu9lab"
-const password = "12345678990iu9iu9"
+const (
+	password string = "Je2dTYr6"
+	login    string = "iu9networkslabs"
+	host     string = "students.yss.su"
+	dbname   string = "iu9networkslabs"
+)
 
-type Message struct {
-	Message string `json:"message"`
+type Product struct {
+	Id            int    `json:"id"`
+	Title         string `json:"title"`
+	Content       string `json:"content"`
+	DatePublished string `json:"datePublished"`
+	TimeRecords   string `json:"timeRecords"`
+	Link          string `json:"link"`
+}
+
+type Products struct {
+	Products []Product `json:"products"`
 }
 
 var upgrader = websocket.Upgrader{
@@ -26,12 +37,11 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
-
 	server := gin.New()
 
 	server.GET("/", UsersOnlineHandler)
 
-	err := server.Run(":8091")
+	err := server.Run(":8095")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -54,98 +64,34 @@ func UsersOnlineHandler(ctx *gin.Context) {
 	}
 }
 
-func getUserOnline() (users Message) {
-	users = Message{
-		Message: "",
-	}
-	res := getFilenamesFromResponse(getResponse())
-	for _, re := range res {
-		if re == "achtung.txt" {
-			users.Message = getFile()
-		}
+func getUserOnline() (users Products) {
+	users = Products{
+		Products: getResponse(),
 	}
 	return
 }
 
-func getFile() (res string) {
-	config := &ssh.ClientConfig{
-		User: login,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(password),
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-	client, err := ssh.Dial("tcp", ip+":"+port, config)
+func getResponse() (products []Product) {
+	db, err := sql.Open("mysql", login+":"+password+"@tcp("+host+")/"+dbname)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	defer func(client *ssh.Client) {
-		err := client.Close()
-		if err != nil {
-
-		}
-	}(client)
-	sess, err := client.NewSession()
+	defer db.Close()
+	rows, err := db.Query("select * from iu9networkslabs.iu9Shevyrov")
 	if err != nil {
-		log.Fatal(err)
+		return
 	}
-	defer func(sess *ssh.Session) {
-		err := sess.Close()
-		if err != nil {
-		}
-	}(sess)
 
-	output, err := sess.Output("cat achtung.txt")
-	if err != nil {
-		log.Println(err)
-	}
-	res = string(output)
-	return
-}
+	defer rows.Close()
 
-func getResponse() (response string) {
-	config := &ssh.ClientConfig{
-		User: login,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(password),
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-	client, err := ssh.Dial("tcp", ip+":"+port, config)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func(client *ssh.Client) {
-		err := client.Close()
-		if err != nil {
-
-		}
-	}(client)
-	sess, err := client.NewSession()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func(sess *ssh.Session) {
-		err := sess.Close()
-		if err != nil {
-		}
-	}(sess)
-
-	output, err := sess.Output("ls")
-	if err != nil {
-		log.Println(err)
-	}
-	response = string(output)
-	return
-}
-
-func getFilenamesFromResponse(str string) (res []string) {
-	split := strings.Split(str, "\n")
-	for _, s := range split {
-		if s == "" {
+	for rows.Next() {
+		p := Product{}
+		err4 := rows.Scan(&p.Id, &p.Title, &p.Content, &p.DatePublished, &p.TimeRecords, &p.Link)
+		if err4 != nil {
+			fmt.Println(err4)
 			continue
 		}
-		res = append(res, s)
+		products = append(products, p)
 	}
 	return
 }
